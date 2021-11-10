@@ -6,9 +6,9 @@ require(ggplot2)
 theme_set(theme_bw(base_size=6))
 
 ## Download CAGEfightR extension
-##system("wget https://github.com/anderssonlab/CAGEfightR_extensions/archive/v0.1.1.tar.gz")
-##system("tar xvzf v0.1.1.tar.gz")
-##system("mv CAGEfightR_extensions-0.1.1 CAGEfightR_extensions")
+system("wget https://github.com/anderssonlab/CAGEfightR_extensions/archive/v0.1.1.tar.gz")
+system("tar xvzf v0.1.1.tar.gz")
+system("mv CAGEfightR_extensions-0.1.1 CAGEfightR_extensions")
 
 source("CAGEfightR_extensions/decompose.R")
 
