@@ -109,7 +109,7 @@ standalone.TC.expr <- supported.TC.expr[names(standalone.TCs),]
 
 
 ## Filter external focus TSSs by gene expression support
-gene.expressed <- scan("/isdata/alab/projects/rep_chromatin_TC/analysis/data/genes_background.txt",what=character(0))
+gene.expressed <- scan("../data/genes_background.txt",what=character(0))
 gene.promoters.expressed <- gene.promoters[as.character(sapply(mcols(gene.promoters)$geneID,function(n) strsplit(n,"\\.")[[1]][1])) %in% gene.expressed,]
 
 
