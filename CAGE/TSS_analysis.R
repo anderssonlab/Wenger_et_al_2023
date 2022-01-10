@@ -63,15 +63,15 @@ supported.TC.expr <- decomp.TC.expr[keep,]
 supported.TCs <- decomp.TCs[rownames(supported.TC.expr),]
 
 ## Load txdb object
-if (!file.exists("../data/gencode.vM24.annotation.sqlite")) {
-    system("wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M24/gencode.vM24.annotation.gtf.gz")
-    system("gzip -d gencode.vM24.annotation.gtf.gz")
-    txdb <- makeTxDbFromGFF(file="gencode.vM24.annotation.gtf", format="gtf",
+if (!file.exists("../data/gencode.vM23.annotation.sqlite")) {
+    system("wget ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M23/gencode.vM23.annotation.gtf.gz")
+    system("gzip -d gencode.vM23.annotation.gtf.gz")
+    txdb <- makeTxDbFromGFF(file="gencode.vM23.annotation.gtf", format="gtf",
                             chrominfo=read.csv2(file="../data/mm10.chrom.sizes", header=FALSE, col.names=c("chrom", "length"), sep="\t"),
                             organism="Mus musculus")
-    saveDb(txdb, file="../data/gencode.vM24.annotation.sqlite")
+    saveDb(txdb, file="../data/gencode.vM23.annotation.sqlite")
 } else
-    txdb <- loadDb("../data/gencode.vM24.annotation.sqlite")
+    txdb <- loadDb("../data/gencode.vM23.annotation.sqlite")
 
 genomeInfo <- bwCommonGenome(plusStrand=plus_files, minusStrand=minus_files, method='intersect')
 seqlevels(txdb) <- seqlevels(genomeInfo)
