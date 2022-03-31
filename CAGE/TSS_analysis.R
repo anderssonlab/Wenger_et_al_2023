@@ -188,7 +188,7 @@ df <- do.call("rbind",lapply(names(standalone.TC.states),function(clone) {
                           x
                       }))
 df$State <- factor(df$State,levels=names(states))
-ggplot(df,aes(State,Clone,fill=Freq)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Blues", direction=1, trans = 'log10') +
+ggplot(df,aes(State,Clone,fill=Freq)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Oranges", direction=1, trans = 'log10') +
     geom_text(aes(label=Freq),size=1) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=5)) + theme(axis.text.y = element_text(size=5))
 ggsave("plots/Chromatin_state_frequencies_standalone_TCs.pdf",width=10,height=5)
 
@@ -198,7 +198,7 @@ df <- do.call("rbind",lapply(names(gene.promoter.states),function(clone) {
                           x
                       }))
 df$State <- factor(df$State,levels=names(states))
-ggplot(df,aes(State,Clone,fill=Freq)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Blues", direction=1, trans = 'log10') +
+ggplot(df,aes(State,Clone,fill=Freq)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Oranges", direction=1, trans = 'log10') +
     geom_text(aes(label=Freq),size=1) + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1, size=5)) + theme(axis.text.y = element_text(size=5))
 ggsave("plots/Chromatin_state_frequencies_gene_promoters.pdf",width=10,height=5)
 
@@ -249,11 +249,37 @@ gene.promoter.states.transitions$MUT <- factor(gene.promoter.states.transitions$
 
 ## Plot transitions
 
-ggplot(standalone.TC.states.transitions,aes(x=MUT,y=WT,fill=fraction)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Blues", direction=1, trans = 'log10') +
+ggplot(standalone.TC.states.transitions,aes(x=MUT,y=WT,fill=fraction)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Oranges", direction=1, trans = 'log10') +
     geom_text(aes(label=Freq),size=2) + xlab("MUT") + ylab("WT") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + facet_wrap(sample ~ ., ncol=3)
 ggsave("plots/Chromatin_state_tile_standalone_TC_states.pdf",width=18,height=5)
 
-ggplot(gene.promoter.states.transitions,aes(x=MUT,y=WT,fill=fraction)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Blues", direction=1, trans = 'log10') +
+selection <- c(
+    "H3K27me3,H3K4me3",
+    "H3K27me3,H3K4me3,H3K9me3",
+    "H3K27ac,H3K27me3,H3K4me3",
+    "H3K27ac,H3K27me3,H3K4me3,H3K9me3",
+    "H3K4me3,H3K9me3",
+    "H3K27ac,H3K4me3,H3K9me3",
+    "H3K27ac,H3K9me3",
+    #"H3K27ac,H3K27me3",
+    #"H3K27ac,H3K27me3,H3K9me3",
+    "H3K27me3",
+    "H3K9me3",
+    "H3K27me3,H3K9me3",
+    "H3K27ac,H3K4me3",
+    "H3K27ac",
+    "H3K4me3",
+    "none")
+
+sel <- subset(standalone.TC.states.transitions, WT %in% selection & MUT %in% selection)
+sel$WT <- factor(sel$WT, levels=rev(selection))
+sel$MUT <- factor(sel$MUT, levels=rev(selection))
+
+ggplot(sel,aes(x=MUT,y=WT,fill=fraction)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Oranges", direction=1, trans = 'log10') +
+geom_text(aes(label=Freq),size=2) + xlab("MUT") + ylab("WT") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + facet_wrap(sample ~ ., ncol=3)
+ggsave("plots/Chromatin_state_tile_standalone_TC_states_reorder.pdf",width=18,height=5)
+
+ggplot(gene.promoter.states.transitions,aes(x=MUT,y=WT,fill=fraction)) + geom_tile() + scale_fill_distiller(type = "seq", palette = "Oranges", direction=1, trans = 'log10') +
     geom_text(aes(label=Freq),size=2) + xlab("MUT") + ylab("WT") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + facet_wrap(sample ~ ., ncol=3)
 ggsave("plots/Chromatin_state_tile_gene_promoter_states.pdf",width=18,height=5)
 
@@ -289,6 +315,14 @@ wt <- gene.promoter.states[["410"]]
 g.id <- as.character(sapply(gene.promoters.expressed$geneID, function(n) strsplit(n,"\\.")[[1]][1]))
 u <- wt[which(g.id %in% up)]
 d <- wt[which(g.id %in% down)]
+
+u.g <- g.id[which(g.id %in% up)]
+d.g <- g.id[which(g.id %in% down)]
+
+df <- rbind(cbind(names(u),u.g,u,"Up"), cbind(names(d),d.g,d,"Down"))
+dimnames(df) <- list(NULL,c("promoter","gene","state","DE"))
+write.table(df,file="gene_promoter_states_WT.tab",sep="\t",row.names=FALSE,col.names=TRUE,quote=FALSE)
+
 gene.promoter.states.WT.DE.full.enrich <- t(sapply(names(states), function(state) {
     print(state)
     um <- matrix(c(sum(u==state), sum(u!=state), sum(wt==state)-sum(u==state),sum(wt!=state)-sum(u!=state)),byrow=TRUE,ncol=2)
@@ -310,11 +344,25 @@ colnames(df) <- c("odds.ratio","p.value","count","DE")
 df$state <- rownames(gene.promoter.states.WT.DE.full.enrich)
 df[df$p.value>0.05,"odds.ratio"] <- NA
 
+sel <- subset(df, state %in% selection)
+sel$state <- factor(sel$state, levels=rev(selection))
+
 ggplot(df,aes(x=DE,y=state,fill=log2(odds.ratio))) + geom_tile() +
     scale_fill_distiller(na.value = "grey80", type = "div", palette = "RdBu",
                          rescaler = function(x, to = c(0, 1), from = range(x, na.rm = TRUE)) {scales::rescale_mid(x, to, from, 0)}) +
     geom_text(aes(label=count),size=2) + xlab("") + ylab("")
 ggsave("plots/gene_promoter_states_WT_enrich_full_DE_model_tile.pdf",width=4,height=4)
+
+ggplot(sel,aes(x=DE,y=state,fill=log2(odds.ratio))) + geom_tile() +
+    scale_fill_distiller(na.value = "grey80", type = "div", palette = "RdBu",
+                         rescaler = function(x, to = c(0, 1), from = range(x, na.rm = TRUE)) {scales::rescale_mid(x, to, from, 0)}) +
+    geom_text(aes(label=count),size=2) + xlab("") + ylab("")
+ggsave("plots/gene_promoter_states_WT_enrich_full_DE_model_tile_reorder.pdf",width=4,height=4)
+
+ggplot(sel,aes(x=DE,y=state,fill=log2(odds.ratio))) + geom_tile() +
+    scale_fill_distiller(na.value = "grey80", type = "div", palette = "RdBu",
+                         rescaler = function(x, to = c(0, 1), from = range(x, na.rm = TRUE)) {scales::rescale_mid(x, to, from, 0)})
+ggsave("plots/gene_promoter_states_WT_enrich_full_DE_model_tile_reorder_no_numbers.pdf",width=4,height=4)
 
 
 g.id <- as.character(sapply(gene.promoters.expressed$geneID, function(n) strsplit(n,"\\.")[[1]][1]))
