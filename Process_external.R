@@ -40,7 +40,7 @@ if (!file.exists(annot.sqlite.file)) {
 chroms <- c(paste("chr",1:19,sep=""), "chrX", "chrY")
 
 ## Load mm10 blacklist regions and add regiones with deletions
-mm10.blacklist.df <- read.csv(file.path(external.data.dir, "mm10.blacklist.bed"),
+mm10.blacklist.df <- read.csv(file.path(external.data.dir, "mm10.blacklist.bed.gz"),
                               header = FALSE, sep = "\t", 
                               stringsAsFactors = FALSE)
 colnames(mm10.blacklist.df) <- c("seqnames", "start", "end")
@@ -57,7 +57,7 @@ mm10.blacklist.gr <- c(mm10.blacklist.gr, del.gr)
 mm10.blacklist.noovrl.gr <- GenomicRanges::reduce(mm10.blacklist.gr, min.gapwidth = 0)
 
 ## Load mm10 CpG islands
-cpg.islands <- read.csv(file = file.path(external.data.dir,"mm10.cpgIslands.tsv"), sep = "\t", 
+cpg.islands <- read.csv(file = file.path(external.data.dir,"mm10.cpgIslands.tsv.gz"), sep = "\t", 
                         stringsAsFactors = FALSE, header = FALSE)[,c(2,3,4)]
 colnames(cpg.islands) <- c("seqnames", "start", "end")
 cpg.islands.gr <- makeGRangesFromDataFrame(cpg.islands, keep.extra.columns = TRUE)
@@ -69,11 +69,11 @@ end(Enh.gr) <- Enh.gr$peakEnd
 Enh.gr <- Enh.gr[!is.na(Enh.gr$active)]
 
 ## Load mouse super enhancers and do liftover
-SEnh_meta <- read.csv(file.path(file.path(external.data.dir,"mm9.super_enhancers_meta.bed")),
+SEnh_meta <- read.csv(file.path(file.path(external.data.dir,"mm9.super_enhancers_meta.bed.gz")),
                       skip = 3,sep=";",header = T)
 
 SEnh <- read.table(file.path(file.path(external.data.dir,
-                                       "mm9.super_enhancers.bed")),
+                                       "mm9.super_enhancers.bed.gz")),
                    skip=2,sep=";",header=T)
 
 SEnh.gr <- makeGRangesFromDataFrame(SEnh[SEnh$isSuper=="YES",],seqnames.field = "chrom",
