@@ -41,8 +41,9 @@ library(openxlsx)
 ### Set working directory and parameters ###
 
 
-wd.dir <- "Wenger_et_al_2022"
+wd.dir <- "Wenger_et_al_2023"
 setwd(wd.dir)
+
 
 data.dir <- "data"
 plots.dir <- "plots"
@@ -64,13 +65,15 @@ load(file.path(external.data.dir, "Processed_external.RData"))
 source(file.path(wd.dir,"utils/utils.R"))
 num.cores <- detectCores() / 2
 
+data.dir <- "data"
+external.data.dir <- file.path(data.dir,"external")
 annot.version <- "gencode.vM23"
 assembly <- "mm10"
 
 chrom.sizes.file <- file.path(data.dir, paste0(assembly, ".chrom.sizes"))
 chrom.sizes.df <- read.csv2(file = chrom.sizes.file, header = FALSE, col.names = c("chrom", "length"), sep = "\t")
 
-annot.data.gtf <- file.path(external.data.dir,paste0(annot.version,".annotation.gtf.gz"))
+annot.data.gtf <- file.path(external.data.dir, paste0(annot.version,".annotation.gtf.gz"))
 annot.sqlite.file <- gsub(".gtf.gz",".sqlite", annot.data.gtf)
 
 if (!file.exists(annot.sqlite.file)) {
@@ -98,7 +101,7 @@ part.cond.cols <- c("OK-seq" = "#043927",
                     "WT" = c(pal_material("blue")(10)[10]),
                     "MCM2-2A" = c(pal_material("orange")(10)[5]),
                     "MCM2-Y90A" = c(pal_material("orange")(10)[3]),
-                    "MCM2-2A-R" = c(pal_material("purple")(10)[10]),
+                    "MCM2-R" = c(pal_material("purple")(10)[10]),
                     "POLE4-KO" = c(pal_material("red")(10)[10])) 
 
 tp.linetype.list <- c("T=0" = "solid", "T=1" = "dotdash", "T=3" = "dashed", "T=8" = "dotted")
@@ -140,7 +143,7 @@ replicate.labs <- c("r1" = "replicate #1",
 clone.labs <- c("410" = "WT", "439" = "MCM2-2A #1", 
                 "442" = "MCM2-2A #2", "438" = "MCM2-2A #3",
                 "423" = "MCM2-Y90A #1",
-                "586" = "MCM2-2A-R #1","588" = "MCM2-2A-R #2", 
+                "586" = "MCM2-R #1","588" = "MCM2-R #2", 
                 "551" = "POLE4-KO #1",
                 "552" = "POLE4-KO #2")
 
@@ -165,7 +168,7 @@ names(tp.rep.labs) <- c("T0_r1", "T0_r3","T0_r4",
 clone.conds <- c("410" = "WT", "439" = "MCM2-2A",
                  "442" = "MCM2-2A", "438" = "MCM2-2A",
                  "423" = "MCM2-Y90A",
-                 "588" = "MCM2-2A-R",
+                 "588" = "MCM2-R",
                  "551" = "POLE4-KO", "552" = "POLE4-KO")
 
 reps <- c("r1" = "r1", "r2" = "r2", "r3" = "r1",
@@ -296,7 +299,7 @@ plot.mean.df$condition <- factor(plot.mean.df$condition, levels = c("WT","MCM2-2
                                                                     "OK-seq"))
 
 n.izs <- length(OK.ext.gr)
-scar.fig3F.plt <- ggplot(plot.mean.df) + 
+scar.figs10c.plt <- ggplot(plot.mean.df) + 
   geom_line(stat = "smooth",size = 1.3, aes(x = dist / 1000, y = RFD,
                                             colour=condition),
             method = "gam",se=F, inherit.aes = TRUE) + 
@@ -317,8 +320,8 @@ scar.fig3F.plt <- ggplot(plot.mean.df) +
   labs(caption = TeX(paste0("$N =",n.izs, "$")),
        family = "Helvetica", size = 5)
 
-ggsave(filename = file.path(plots.dir, paste0("Fig3F_","SCAR","_",mk, "_partition.pdf")),
-       plot = scar.fig3F.plt,
+ggsave(filename = file.path(plots.dir, paste0("FigS10C_","SCAR","_",mk, "_partition.pdf")),
+       plot = scar.figs10c.plt,
        width = 12, height = 10, device = cairo_pdf)
 
 
@@ -622,7 +625,7 @@ for(mk in names(main.part.fig.names)) {
   
   if (mk != "H3K4me3") {
     ggsave(filename = file.path(plots.dir, paste0(supp.part.rt.fig.names[mk],
-                                                  "Rebuttal_SCAR_",mk, "_RT.pdf")),
+                                                  "_SCAR_",mk, "_RT.pdf")),
            plot = supp.fig.partition.RT.plt,
            width = 16, height = 6, device = cairo_pdf)
   }
@@ -749,22 +752,22 @@ for(mk in names(main.part.fig.names)) {
   
   brkids <- unique(union(RFD_max.gr$break_ID, RFD_min.gr$break_ID))
   
-  tmp.break.all.gr <- subset(tmp.break.all.gr, break_ID %in% brkids)
+  tmp.break.all.gr <- subset(RFD.break.all.gr, break_ID %in% brkids)
   
-  nearest.max.dist <- as.data.frame(distanceToNearest(RFD.break.all.gr, RFD_max.gr))
-  RFD.break.all.gr$nearest.max <- Inf
-  RFD.break.all.gr$nearest.max[nearest.max.dist$queryHits] <- nearest.max.dist$distance
+  nearest.max.dist <- as.data.frame(distanceToNearest(tmp.break.all.gr, RFD_max.gr))
+  tmp.break.all.gr$nearest.max <- Inf
+  tmp.break.all.gr$nearest.max[nearest.max.dist$queryHits] <- nearest.max.dist$distance
   
-  nearest.min.dist <- as.data.frame(distanceToNearest(RFD.break.all.gr, RFD_min.gr))
-  RFD.break.all.gr$nearest.min <- Inf
-  RFD.break.all.gr$nearest.min[nearest.min.dist$queryHits] <- nearest.min.dist$distance
+  nearest.min.dist <- as.data.frame(distanceToNearest(tmp.break.all.gr, RFD_min.gr))
+  tmp.break.all.gr$nearest.min <- Inf
+  tmp.break.all.gr$nearest.min[nearest.min.dist$queryHits] <- nearest.min.dist$distance
   
-  RFD.break.all.gr$distance.extreme <- ifelse(RFD.break.all.gr$direction == "Downstream",
-                                              RFD.break.all.gr$nearest.max,
-                                              RFD.break.all.gr$nearest.min)
+  tmp.break.all.gr$distance.extreme <- ifelse(tmp.break.all.gr$direction == "Downstream",
+                                              tmp.break.all.gr$nearest.max,
+                                              tmp.break.all.gr$nearest.min)
   
   
-  RFD.box.df <- RFD.break.all.gr %>% as.data.frame() %>% 
+  RFD.box.df <- tmp.break.all.gr %>% as.data.frame() %>% 
     dplyr::filter((F.cpm + R.cpm) >= CPM.cutoff, 
                   distance.extreme != Inf,
                   sample != "OK-seq",
@@ -1006,7 +1009,7 @@ scar.suz12.strict.plt <- ggplot(plot.mean.df) +
   labs(caption = TeX(paste0("$N =",n.izs, "$")),
        family = "Helvetica", size = 5)
 
-ggsave(filename = file.path(plots.dir, paste0("Fig2E_","SCAR_SUZ12","partition.pdf")),
+ggsave(filename = file.path(plots.dir, paste0("Fig2J_","SCAR_SUZ12","partition.pdf")),
        plot = scar.suz12.strict.plt,
        width = 12, height = 10, device = cairo_pdf)
 
@@ -1081,7 +1084,7 @@ supp.fig.suz12.partition.rep.plt  <-
   labs(caption = TeX(paste0("$N =",n.izs, "$")),
        family = "Helvetica", size = 5)
 
-ggsave(filename = file.path(plots.dir, paste0("FigS8D_SCAR_SUZ12_partition_replicate.pdf")),
+ggsave(filename = file.path(plots.dir, paste0("FigS6I_SCAR_SUZ12_partition_replicate.pdf")),
        plot = supp.fig.suz12.partition.rep.plt,
        width = 14, height = 10, device = cairo_pdf)
 
@@ -1138,6 +1141,77 @@ RFD.break.all.gr$RT <- OK.ext.gr$RT[queryHits(overlap.pairs)]
 RFD.break.all.gr$dist <- start(RFD.break.all.gr) - OK.ext.gr$break_start[queryHits(overlap.pairs)]
 
 
+
+CPM.cutoff <- 0.3
+
+RFD.mean.df <- RFD.break.all.gr %>% as.data.frame() %>% 
+  dplyr::filter((F.cpm + R.cpm) >= CPM.cutoff, sample != "OK-seq", 
+                clone %in% c("410","442", "588")) %>%
+  dplyr::group_by(dist,clone,mark) %>%  # rank, enh_active
+  dplyr::summarise(#RFD_sd = sd(RFD,na.rm = T),
+    RFD.raw = mean(RFD.raw, na.rm = T),
+    RFD = mean(RFD,na.rm = T)) %>% 
+  mutate(condition = clone.conds[clone]) %>%
+  as.data.frame()
+
+OK.mean.df <- RFD.break.all.gr %>% as.data.frame() %>% 
+  dplyr::filter((F.cpm + R.cpm) >= CPM.cutoff, sample == "OK-seq") %>%
+  dplyr::group_by(dist) %>%  # rank, enh_active
+  dplyr::summarise(#RFD_sd = sd(RFD,na.rm = T),
+    RFD.raw = mean(RFD.raw, na.rm = T),
+    RFD = mean(RFD,na.rm = T)) %>% as.data.frame()
+
+OK.mean.df$clone <- "263"
+OK.mean.df$mark <- "H3K27me3"
+OK.mean.df$condition <- "OK-seq"
+
+
+plot.mean.df <- rbind(OK.mean.df, RFD.mean.df)
+plot.mean.df$mark <- factor(plot.mean.df$mark, levels = c("H3K27me3", "H4K20me0"))
+plot.mean.df$condition <- factor(plot.mean.df$condition, levels = c("OK-seq","WT","MCM2-2A","MCM2-R"))
+
+
+mx.lim <- max(abs(plot.mean.df$RFD)) + 0.01
+
+n.izs <- length(OK.ext.gr)
+
+tmp.mark.linetype.list <- c("H3K27me3" = "solid", "H4K20me0" = "dashed")
+tmp.cond.colors <- c("MCM2-2A" = "#DF4912",
+                 "MCM2-R" = "#2DAAE1",
+                 "WT" = "#193C90")
+
+scar.rescue.442.plt <- filter(plot.mean.df, condition != "OK-seq") %>% 
+  mutate(mark = droplevels(mark)) %>%
+  ggplot() + 
+  geom_line(stat = "smooth",size = 1.3, aes(x = dist / 1000, y = RFD,
+                                            colour=condition, linetype = mark),
+            method = "gam",se=F, inherit.aes = TRUE) + 
+  xlab(paste0("Distance (kb) from initiation zone center")) +
+  ylab("Partition or RFD") +
+  geom_vline(xintercept = 0, colour = "grey70", size = 0.5) +
+  geom_hline(yintercept = 0, colour = "grey70", size = 0.5) +
+  scale_y_continuous(breaks=c(-0.2,-0.1, 0, 0.1,0.2), 
+                     limits = c(-mx.lim ,mx.lim)) +
+  scale_colour_manual(values=tmp.cond.colors[c("WT","MCM2-2A", "MCM2-R")]) +
+  scale_linetype_manual(values = tmp.mark.linetype.list[c("H3K27me3", "H4K20me0")]) +
+  guides(colour = guide_legend(title = ""),
+         linetype = guide_legend(order = 2, title = "SCAR-seq",
+                                 override.aes = list(linetype = c("H3K27me3" = 1,"H4K20me0" = 6)))) +
+  theme_classic(base_size = 20, base_family = "Helvetica") + 
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.title = element_text(size = 7 * .pt),
+        axis.text = element_text(size = 6 * .pt),
+        legend.text = element_text(size = 6 * .pt),
+        aspect.ratio = 0.8) +
+  labs(caption = TeX(paste0("$N =",n.izs, "$")),
+       family = "Helvetica", size = 5)
+
+ggsave(filename = file.path(plots.dir, paste0("Fig2B_","SCAR_Rescue_442_","partition.pdf")),
+       plot = scar.rescue.442.plt,
+       width = 12, height = 10, device = cairo_pdf)
+
+
 ## ===================  Plot a partition plot  ==================================
 ### Here we define the CPM cutoff
 ### Higher values usually give higher mean partitions scores
@@ -1178,7 +1252,7 @@ for (cid in unique(RFD.mean.df$clone)) {
 plot.mean.df <- rbind(plot.mean.df, RFD.mean.df)
 
 plot.mean.df$mark <- factor(plot.mean.df$mark, levels = c("H3K27me3", "H4K20me0", "OK-seq"))
-plot.mean.df$condition <- factor(plot.mean.df$condition, levels = c("WT","MCM2-2A","MCM2-2A-R","OK-seq"))
+plot.mean.df$condition <- factor(plot.mean.df$condition, levels = c("WT","MCM2-2A","MCM2-R","OK-seq"))
 plot.mean.df$clone <- factor(plot.mean.df$clone, levels = c("410","442","588"))
 plot.mean.df$replicate <- factor(plot.mean.df$replicate)
 
@@ -1201,7 +1275,7 @@ supp.fig.rescue.partition.rep.plt  <-
   scale_y_continuous(breaks=c(-0.2,-0.1, 0, 0.1,0.2)) +
   scale_x_continuous(breaks=c(-50, 0, 50), 
                      limits = c(-100,100)) +
-  scale_colour_manual(values=part.cond.cols[c("OK-seq","WT","MCM2-2A", "MCM2-2A-R")]) +
+  scale_colour_manual(values=part.cond.cols[c("OK-seq","WT","MCM2-2A", "MCM2-R")]) +
   scale_linetype_manual(values = mark.linetype.list) +
   guides(colour = guide_legend(title = ""),
          linetype = guide_legend(order = 2, title = "SCAR-seq")) +
@@ -1217,9 +1291,9 @@ supp.fig.rescue.partition.rep.plt  <-
   labs(caption = TeX(paste0("$N =",n.izs, "$")),
        family = "Helvetica", size = 5)
 
-ggsave(filename = file.path(plots.dir, paste0("FigS13A_SCAR_Rescue_partition_replicate.pdf")),
-       plot = supp.fig.rescue.partition.rep.plt,
-       width = 14, height = 10, device = cairo_pdf)
+#ggsave(filename = file.path(plots.dir, paste0("Extra_SCAR_Rescue_partition_replicate.pdf")),
+#       plot = supp.fig.rescue.partition.rep.plt,
+#       width = 14, height = 10, device = cairo_pdf)
 
 
 
@@ -1307,9 +1381,9 @@ y90a.fig.rescue.partition.rep.plt  <-
   labs(caption = TeX(paste0("$N =",n.izs, "$")),
        family = "Helvetica", size = 5)
 
-ggsave(filename = file.path(plots.dir, paste0("FigR2D_SCAR_y90A_partition_mean_merged.pdf")),
-       plot = y90a.fig.rescue.partition.rep.plt,
-       width = 14, height = 12, device = cairo_pdf)
+#ggsave(filename = file.path(plots.dir, paste0("FigR2D_SCAR_y90A_partition_mean_merged.pdf")),
+#       plot = y90a.fig.rescue.partition.rep.plt,
+#       width = 14, height = 12, device = cairo_pdf)
 
 
 ### Partition analyses for POLE4-KO samples of H3K27me3/H4K20me0
@@ -1437,7 +1511,7 @@ supp.fig.pole4.partition.rep.plt  <-
   labs(caption = TeX(paste0("$N =",n.izs, "$")),
        family = "Helvetica", size = 5)
 
-ggsave(filename = file.path(plots.dir, paste0("FigS12C_SCAR_Pole4_partition_replicate.pdf")),
+ggsave(filename = file.path(plots.dir, paste0("FigS10D_SCAR_Pole4_partition_replicate.pdf")),
        plot = supp.fig.pole4.partition.rep.plt,
        width = 14, height = 10, device = cairo_pdf)
 
@@ -1460,6 +1534,20 @@ rt.labels <- paste0(names(table(OK.ext.gr$RT)), " (n=",
                     as.numeric(table(OK.ext.gr$RT)), ")")
 
 names(rt.labels) <- names(table(OK.ext.gr$RT))
+
+
+overlap.pairs <- findOverlaps(OK.ext.gr, RFD.gr)
+RFD.break.all.gr <- RFD.gr[subjectHits(overlap.pairs)]
+RFD.break.all.gr$break_ID <- OK.ext.gr$names[queryHits(overlap.pairs)]
+RFD.break.all.gr$RT <- OK.ext.gr$RT[queryHits(overlap.pairs)]
+RFD.break.all.gr$dist <- start(RFD.break.all.gr) - OK.ext.gr$break_start[queryHits(overlap.pairs)]
+
+RFD.break.all.gr$direction <- "Upstream"
+RFD.break.all.gr$direction[RFD.break.all.gr$dist > 0] <- "Downstream"
+
+RFD.break.all.gr$RFD.adj <- ifelse(RFD.break.all.gr$direction == "Downstream",
+                                   RFD.break.all.gr$RFD, -RFD.break.all.gr$RFD) 
+
 
 CPM.cutoff <- 0.03
 RFD.mean.df <- RFD.break.all.gr %>% as.data.frame() %>% 
@@ -1719,6 +1807,7 @@ ggsave(filename = file.path(plots.dir, paste0("FigS4I_SCAR_Inputs_scatter.pdf"))
        plot =   supp.fig.partition.scatter.plt,
        width = 16, height = 12, device = cairo_pdf)
 
+#### Check assymetry over H3K27ac/ME3 ########################################
 
 load(file.path(scar.data.dir,"SCAR_H3K27ac_bins_stranded_w250.RData"))
 
@@ -1815,7 +1904,7 @@ scar.fig.S4F.plt <- filter(all.csaw.wide.df, (F.cpm + R.cpm) > CPM.cutoff,
   scale_y_continuous(breaks = c(-0.6, 0, 0.6), limits = c(-1.1,1.1)) +
   ylab("H3K27ac Partition") + xlab("Genomic Regions") +
   theme_bw(base_size = 20, base_family = "Helvetica") + 
-  facet_wrap(~ timepoint,nrow = 1,labeller = labeller(.cols = tp.labs)) +
+  facet_wrap(~ timepoint,nrow = 2,labeller = labeller(.cols = tp.labs)) +
   labs(fill = "", colour = "Strand", alpha = "Strand") +
   guides(alpha = guide_legend(title = "Relative to IZ",
                               override.aes = list(fill = c("Upstream"=part.cond.cols["MCM2-2A"],
