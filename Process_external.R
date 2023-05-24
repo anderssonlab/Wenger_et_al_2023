@@ -6,7 +6,7 @@ library(clusterProfiler)
 
 ### Script to process all external data used and in most analyses
 
-wd.dir <- "/isdata/alab/people/nalcaraz/Projects/KU/rep_chromatin_TC/publication/Wenger_et_al_2022"
+wd.dir <- "Wenger_et_al_2023"
 setwd(wd.dir)
 
 data.dir <- "data"
